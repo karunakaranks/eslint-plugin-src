@@ -18,11 +18,13 @@ module.exports = {
             if (node.parent.sourceType === "module" && node.kind == "const") {
               node.declarations &&
                 node.declarations.forEach(declaration => {
-                  if (declaration.id && !/^[A-Z_]+$/.test(declaration.id.name))
+                  if (declaration.id && !/^[A-Z_]+$/.test(declaration.id.name)) {
+                    var names = getDelarationNames(declaration.id);
                     context.report({
                       node,
-                      message: `constant '${declaration.id.name}' should follow UPPER_CASE convention`
+                      message: `constant${names.length > 1 ? 's' : ''} '${names.join(", ")}' should follow UPPER_CASE convention`
                     });
+                  }
                 });
             }
           }
@@ -92,6 +94,17 @@ function isHook(node) {
     return obj.type === "Identifier" && isPascalCaseNameSpace.test(obj.name);
   } else {
     return false;
+  }
+}
+
+
+function getDelarationNames(node) {
+  if (node.type == "ObjectPattern") {
+    return node.properties.map(n => n.key.name)
+  } else if (node.type == "ArrayPattern") {
+    return node.elements.map(n => n.name)
+  } else {
+    return [node.name]
   }
 }
 
